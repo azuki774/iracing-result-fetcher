@@ -1,0 +1,30 @@
+name: pytest
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+        - "**"
+
+jobs:
+  pytest:
+    name: Run tests with pytest
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ 3.8 ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Setup python module
+        run: pip install -r requirements.txt
+      - name: Setup python test module
+        run: pip install -r test_requirements.txt
+      - name: Run Tests
+        run: pytest -sv
