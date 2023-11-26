@@ -1,6 +1,7 @@
 import time
 import datetime as dt
 import os
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -9,7 +10,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import logging
-import os
+import re
 from pythonjsonlogger import jsonlogger
 
 lg = logging.getLogger(__name__)
@@ -61,5 +62,46 @@ def login(driver):
 
     ## for checking login success
     driver.find_element(by=By.XPATH, value=TEST_XPATH).get_attribute("textContent")
-
+    lg.info("login ok")
     return
+
+
+# required login
+def get_your_subsession_id(driver):
+    url = RESULTS_ARCHIVE_PAGE
+    driver.get(url)
+
+    time.sleep(5)  # wait for loading RESULTS_ARCHIVE_PAGE
+    driver.execute_script("javascript:PageApp.Search(true)")
+    time.sleep(5)  # wait for searching
+
+    RESULT_TABLE = "/html/body/table/tbody/tr[6]/td[2]/div/table/tbody/tr[2]/td/div/div[2]/div/div[5]/div[2]/div/div/table"
+    result_table = driver.find_element(
+        by=By.XPATH,
+        value=RESULT_TABLE,
+    )
+
+    html = driver.page_source.encode("utf-8")
+    print(html)
+
+    soup = BeautifulSoup(html, "html.parser")
+    links = soup.find_all("a")
+    a_href_list = []
+    for link in links:
+        a_href_list.append(str(link.get("href")))
+
+    subsession_ids = a_href_list_to_subsession_id(a_href_list)
+    print(subsession_ids)
+    return subsession_ids
+
+
+def a_href_list_to_subsession_id(a_href_list):
+    subsession_ids = []
+    for e in a_href_list:
+        if e.find("javascript:launchEventResult(") == -1:
+            # not included subsession ID
+            continue
+        subsession_id = re.findall("[0-9]+", e)[0]
+        subsession_ids.append(subsession_id)
+
+    return subsession_ids
