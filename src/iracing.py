@@ -1,6 +1,7 @@
 import time
 import datetime as dt
 import os
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -82,4 +83,19 @@ def get_your_subsession_id(driver):
 
     html = driver.page_source.encode("utf-8")
     print(html)
+
+    soup = BeautifulSoup(html, "html.parser")
+    links = soup.find_all("a")
+    for link in links:
+        print(str(link.get("href")))
     return html
+
+
+def a_href_list_to_subsession_id(a_href_list):
+    subsession_ids = []
+    for e in a_href_list:
+        if e.find("javascript:launchEventResult(") == -1:
+            # not included subsession ID
+            continue
+        subsession_ids.append(e)
+    return subsession_ids
