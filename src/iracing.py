@@ -86,9 +86,13 @@ def get_your_subsession_id(driver):
 
     soup = BeautifulSoup(html, "html.parser")
     links = soup.find_all("a")
+    a_href_list = []
     for link in links:
-        print(str(link.get("href")))
-    return html
+        a_href_list.append(str(link.get("href")))
+
+    subsession_ids = a_href_list_to_subsession_id(a_href_list)
+    print(subsession_ids)
+    return subsession_ids
 
 
 def a_href_list_to_subsession_id(a_href_list):
