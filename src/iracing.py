@@ -26,6 +26,7 @@ lg.addHandler(h)
 LOGIN_PAGE = "https://members.iracing.com/membersite/member/results.jsp"
 RESULTS_ARCHIVE_PAGE = "https://members.iracing.com/membersite/member/results.jsp"
 TEST_XPATH = "/html/body/div[3]/div[2]/div/div/div/div[1]/div[2]/span[3]"
+RESULT_CSV_BASE = "https://members.iracing.com/membersite/member/EventResult.do"
 
 
 def login(driver):
@@ -82,7 +83,6 @@ def get_your_subsession_id(driver):
     )
 
     html = driver.page_source.encode("utf-8")
-    print(html)
 
     soup = BeautifulSoup(html, "html.parser")
     links = soup.find_all("a")
@@ -105,3 +105,34 @@ def a_href_list_to_subsession_id(a_href_list):
         subsession_ids.append(subsession_id)
 
     return subsession_ids
+
+
+def proc_result_record(driver, subsession_id):
+    soup = download_result_record(driver, subsession_id)
+    race_record = extract_race_data(soup)
+    print(race_record)
+    return
+
+
+def download_result_record(driver, subsession_id):
+    params = "?subsessionid={0}".format(subsession_id)
+    url = RESULT_CSV_BASE + params
+    driver.get(url)
+    lg.info("get data: {0}".format(url))
+    time.sleep(5)  # wait for loading
+    soup = BeautifulSoup(driver.page_source, "html.parser")
+    return soup
+
+
+def extract_race_data(soup):
+    race_table = soup.find_all("table", class_="event_table")[1]
+    m = []
+    tbody = race_table.find("tbody")
+    trs = tbody.find_all("tr")
+    for tr in trs:
+        r = []
+        for td in tr.find_all("td"):
+            r.append(td.text)
+        m.append(r)
+    ms = m[4:][0::2]  # ignore header and empty data & skip duplicate data
+    return ms
