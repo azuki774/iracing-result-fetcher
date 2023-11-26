@@ -1,0 +1,6 @@
+services:
+  iracing-result-fetcher:
+    image: iracing-result-fetcher
+    container_name: iracing-result-fetcher
+    env_file:
+    - secret.env
