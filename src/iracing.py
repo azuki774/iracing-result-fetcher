@@ -61,5 +61,25 @@ def login(driver):
 
     ## for checking login success
     driver.find_element(by=By.XPATH, value=TEST_XPATH).get_attribute("textContent")
-
+    lg.info("login ok")
     return
+
+
+# required login
+def get_your_subsession_id(driver):
+    url = RESULTS_ARCHIVE_PAGE
+    driver.get(url)
+
+    time.sleep(5)  # wait for loading RESULTS_ARCHIVE_PAGE
+    driver.execute_script("javascript:PageApp.Search(true)")
+    time.sleep(5)  # wait for searching
+
+    RESULT_TABLE = "/html/body/table/tbody/tr[6]/td[2]/div/table/tbody/tr[2]/td/div/div[2]/div/div[5]/div[2]/div/div/table"
+    result_table = driver.find_element(
+        by=By.XPATH,
+        value=RESULT_TABLE,
+    )
+
+    html = driver.page_source.encode("utf-8")
+    print(html)
+    return html

@@ -41,6 +41,7 @@ def main():
     driver = get_driver()
     driver.implicitly_wait(10)
     iracing.login(driver)
+    iracing.get_your_subsession_id(driver)
 
 
 if __name__ == "__main__":
