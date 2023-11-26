@@ -10,7 +10,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import logging
-import os
+import re
 from pythonjsonlogger import jsonlogger
 
 lg = logging.getLogger(__name__)
@@ -97,5 +97,7 @@ def a_href_list_to_subsession_id(a_href_list):
         if e.find("javascript:launchEventResult(") == -1:
             # not included subsession ID
             continue
-        subsession_ids.append(e)
+        subsession_id = re.findall("[0-9]+", e)[0]
+        subsession_ids.append(subsession_id)
+
     return subsession_ids

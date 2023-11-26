@@ -13,8 +13,8 @@ def test_a_href_list_to_subsession_id():
                 "javascript:launchEventResult(88888888,99999999);",  # extracted
             ],
             "want": [
-                "javascript:launchEventResult(77777777,99999999);",
-                "javascript:launchEventResult(88888888,99999999);",
+                "77777777",
+                "88888888",
             ],
         }
     ]
