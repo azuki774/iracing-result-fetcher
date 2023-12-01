@@ -1,4 +1,5 @@
 import json
+import csv
 import time
 import datetime as dt
 import os
@@ -115,6 +116,10 @@ def proc_result_record(driver, subsession_id):
     record = download_result_record(driver, subsession_id)
     write_meta_data(record, META_FILE_PATH)
     lg.info("write meta data: {}".format(META_FILE_PATH))
+
+    RESULT_FILE_PATH = DATA_DIR + "/{}_result.csv".format(subsession_id)
+    write_result_data(record["result"], RESULT_FILE_PATH)
+    lg.info("write result data: {}".format(RESULT_FILE_PATH))
     return
 
 
@@ -209,11 +214,12 @@ def write_meta_data(record, savedir):
     return
 
 
-def write_result_data():
+def write_result_data(result, savedir):
     # Pos
     # Class Pos
     # Car
-    # Class	Car #
+    # Class,
+    # Car #
     # Driver
     # Start Pos
     # Out
@@ -231,4 +237,12 @@ def write_result_data():
     # Club
     # iRating
     # License
-    pass
+    # License Rating
+    # License Moving
+    header = "Pos,ClassPos,Car,Class,Car #,Driver,StartPos,Out,Interval,LapsLed,AverageLapTime,FastestLapTime,FastLap,LapsComp,Inc,Champ,Pts,GrossClubPts,Div,Club,iRating,License,LicenseRating,LicenseMoving"
+    with open(savedir, mode="w") as f:
+        f.write(header + "\n")
+        writer = csv.writer(f, lineterminator="\n")
+        writer.writerows(result)
+
+    return
