@@ -2,3 +2,4 @@ secret.env
 venv
 __pycache__
 deployment/*.json
+deployment/*.csv
