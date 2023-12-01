@@ -108,9 +108,9 @@ def a_href_list_to_subsession_id(a_href_list):
 
 
 def proc_result_record(driver, subsession_id):
-    soup = download_result_record(driver, subsession_id)
-    race_record = extract_race_data(soup)
-    print(race_record)
+    # TODO: skipping if it is downloaded
+    record = download_result_record(driver, subsession_id)
+    print(record)
     return
 
 
@@ -121,10 +121,6 @@ def download_result_record(driver, subsession_id):
     lg.info("get data: {0}".format(url))
     time.sleep(5)  # wait for loading
     soup = BeautifulSoup(driver.page_source, "html.parser")
-    return soup
-
-
-def extract_race_data(soup):
     race_table = soup.find_all("table", class_="event_table")[1]
     m = []
     tbody = race_table.find("tbody")
@@ -135,4 +131,32 @@ def extract_race_data(soup):
             r.append(td.text)
         m.append(r)
     ms = m[4:][0::2]  # ignore header and empty data & skip duplicate data
-    return ms
+
+    record = {}
+    record["result"] = ms
+
+    SEASON_TABLE = "/html/body/div/div/div/div/table/tbody/tr/td[2]/div[1]"
+    record["season"] = driver.find_element(
+        by=By.XPATH,
+        value=SEASON_TABLE,
+    ).text
+
+    DATETIME_TABLE = "/html/body/div/div/div/div/table/tbody/tr/td[2]/div[2]"
+    record["datetime"] = driver.find_element(
+        by=By.XPATH,
+        value=DATETIME_TABLE,
+    ).text
+
+    TRACK_NAME_TABLE = "/html/body/div/div/div/div/table/tbody/tr/td[2]/div[3]"
+    record["track_name"] = driver.find_element(
+        by=By.XPATH,
+        value=TRACK_NAME_TABLE,
+    ).text
+
+    SESSON_ID_TABLE = "/html/body/div/div/div/div/table/tbody/tr/td[2]/div[4]"
+    record["sesson_id"] = driver.find_element(
+        by=By.XPATH,
+        value=SESSON_ID_TABLE,
+    ).text
+
+    return record
