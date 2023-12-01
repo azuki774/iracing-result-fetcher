@@ -4,3 +4,5 @@ services:
     container_name: iracing-result-fetcher
     env_file:
     - secret.env
+    volumes:
+    - ./:/data/

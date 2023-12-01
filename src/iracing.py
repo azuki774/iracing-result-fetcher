@@ -1,3 +1,4 @@
+import json
 import time
 import datetime as dt
 import os
@@ -22,6 +23,8 @@ json_fmt = jsonlogger.JsonFormatter(
 )
 h.setFormatter(json_fmt)
 lg.addHandler(h)
+
+DATA_DIR = "/data"
 
 LOGIN_PAGE = "https://members.iracing.com/membersite/member/results.jsp"
 RESULTS_ARCHIVE_PAGE = "https://members.iracing.com/membersite/member/results.jsp"
@@ -91,7 +94,6 @@ def get_your_subsession_id(driver):
         a_href_list.append(str(link.get("href")))
 
     subsession_ids = a_href_list_to_subsession_id(a_href_list)
-    print(subsession_ids)
     return subsession_ids
 
 
@@ -109,8 +111,10 @@ def a_href_list_to_subsession_id(a_href_list):
 
 def proc_result_record(driver, subsession_id):
     # TODO: skipping if it is downloaded
+    META_FILE_PATH = DATA_DIR + "/{}_meta.json".format(subsession_id)
     record = download_result_record(driver, subsession_id)
-    print(record)
+    write_meta_data(record, META_FILE_PATH)
+    lg.info("write meta data: {}".format(META_FILE_PATH))
     return
 
 
@@ -139,24 +143,92 @@ def download_result_record(driver, subsession_id):
     record["season"] = driver.find_element(
         by=By.XPATH,
         value=SEASON_TABLE,
-    ).text
+    ).get_attribute("textContent")
 
     DATETIME_TABLE = "/html/body/div/div/div/div/table/tbody/tr/td[2]/div[2]"
     record["datetime"] = driver.find_element(
         by=By.XPATH,
         value=DATETIME_TABLE,
-    ).text
+    ).get_attribute("textContent")
 
     TRACK_NAME_TABLE = "/html/body/div/div/div/div/table/tbody/tr/td[2]/div[3]"
     record["track_name"] = driver.find_element(
         by=By.XPATH,
         value=TRACK_NAME_TABLE,
-    ).text
+    ).get_attribute("textContent")
 
     SESSON_ID_TABLE = "/html/body/div/div/div/div/table/tbody/tr/td[2]/div[4]"
     record["sesson_id"] = driver.find_element(
         by=By.XPATH,
         value=SESSON_ID_TABLE,
-    ).text
+    ).get_attribute("textContent")
 
+    SESSON_AVERAGE_LAP_TABLE = (
+        "/html/body/div/div/div/div/div[2]/table/tbody/tr[3]/td[1]"
+    )
+    record["average_lap"] = driver.find_element(
+        by=By.XPATH,
+        value=SESSON_AVERAGE_LAP_TABLE,
+    ).get_attribute("textContent")
+
+    LAP_COMPLETED_TABLE = "/html/body/div/div/div/div/div[2]/table/tbody/tr[3]/td[2]"
+    record["lap_completed"] = driver.find_element(
+        by=By.XPATH,
+        value=LAP_COMPLETED_TABLE,
+    ).get_attribute("textContent")
+
+    CAUTIONS_TABLE = "/html/body/div/div/div/div/div[2]/table/tbody/tr[3]/td[3]"
+    record["cautions"] = driver.find_element(
+        by=By.XPATH,
+        value=CAUTIONS_TABLE,
+    ).get_attribute("textContent")
+
+    CAUTIONS_LAP_TABLE = "/html/body/div/div/div/div/div[2]/table/tbody/tr[3]/td[4]"
+    record["cautions_lap"] = driver.find_element(
+        by=By.XPATH,
+        value=CAUTIONS_LAP_TABLE,
+    ).get_attribute("textContent")
+
+    LEAD_CHANGE_TABLE = "/html/body/div/div/div/div/div[2]/table/tbody/tr[3]/td[5]"
+    record["lead_change"] = driver.find_element(
+        by=By.XPATH,
+        value=LEAD_CHANGE_TABLE,
+    ).get_attribute("textContent")
+
+    SOF_TABLE = "/html/body/div/div/div/div/div[2]/table/tbody/tr[3]/td[6]"
+    record["sof"] = driver.find_element(
+        by=By.XPATH,
+        value=SOF_TABLE,
+    ).get_attribute("textContent")
     return record
+
+
+def write_meta_data(record, savedir):
+    with open(savedir, mode="w") as f:
+        json.dump(record, f, indent=2, ensure_ascii=False)
+    return
+
+
+def write_result_data():
+    # Pos
+    # Class Pos
+    # Car
+    # Class	Car #
+    # Driver
+    # Start Pos
+    # Out
+    # Interval
+    # Laps Led
+    # Average Lap Time
+    # Fastest Lap Time
+    # Fast Lap#
+    # Laps Comp
+    # Inc
+    # Champ
+    # Pts
+    # Gross Club Pts
+    # Div
+    # Club
+    # iRating
+    # License
+    pass
