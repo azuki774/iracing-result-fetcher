@@ -111,8 +111,10 @@ def a_href_list_to_subsession_id(a_href_list):
 
 
 def proc_result_record(driver, subsession_id):
-    # TODO: skipping if it is downloaded
     META_FILE_PATH = DATA_DIR + "/{}_meta.json".format(subsession_id)
+    if os.path.isfile(META_FILE_PATH):
+        lg.info("already existed. skipping download: {}".format(META_FILE_PATH))
+        return
     record = download_result_record(driver, subsession_id)
     write_meta_data(record, META_FILE_PATH)
     lg.info("write meta data: {}".format(META_FILE_PATH))
