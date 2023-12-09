@@ -39,8 +39,10 @@ def main():
     driver.implicitly_wait(10)
     iracing.login(driver)
     subsession_ids = iracing.get_your_subsession_id(driver)
+    lg.info("fetch subsession_id complete:", len(subsession_ids))
     for s in subsession_ids:
         iracing.proc_result_record(driver, s)
+    lg.info("fetch all subsession complete")
     driver.quit()
 
 
