@@ -41,7 +41,12 @@ def main():
     subsession_ids = iracing.get_your_subsession_id(driver)
     for s in subsession_ids:
         iracing.proc_result_record(driver, s)
+    driver.quit()
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        lg.error("failed to run:", e)
+        sys.exit(1)
