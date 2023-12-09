@@ -6,3 +6,11 @@ services:
     - secret.env
     volumes:
     - ./:/data/
+  selenium:
+    image: selenium/standalone-chrome:4.1.4-20220427
+    container_name: selenium
+    ports:
+      - 4444:4444
+      - 7900:7900
+    volumes:
+      - /dev/shm:/dev/shm
