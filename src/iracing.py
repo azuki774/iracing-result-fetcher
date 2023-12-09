@@ -16,7 +16,7 @@ import logging
 import re
 from pythonjsonlogger import jsonlogger
 
-FETCH_WAIT_TIME = 10
+FETCH_WAIT_TIME = 7
 
 lg = logging.getLogger(__name__)
 lg.setLevel(logging.DEBUG)
@@ -93,18 +93,11 @@ def get_your_subsession_id(driver):
     )
     select = Select(SELECTOR)
     all_options = select.options
-    print(all_options)
+
     lg.info("detected {} pages".format((len(all_options))))
     page_ind = 1
     for option in all_options:
-        print(option)
-        print(option.text)  # 選択肢のテキスト
-        print(option.get_attribute("outerHTML"))  # HTMLタグ
-        print(option.get_attribute("value"))  # value属性の値
-        print("----------------------------")
         # one page process
-        time.sleep(FETCH_WAIT_TIME)  # wait for searching
-        SELECTOR.send_keys(option.text)
         lg.info("fetching {}/{}".format(page_ind, len(all_options)))
         time.sleep(FETCH_WAIT_TIME)  # wait for searching
 
@@ -123,7 +116,19 @@ def get_your_subsession_id(driver):
             a_href_list.append(str(link.get("href")))
 
         subsession_ids = subsession_ids + a_href_list_to_subsession_id(a_href_list)
+
+        if page_ind == len(all_options):  # if last page
+            break
+
+        # next page
+        NEXT_BUTTON = "/html/body/table/tbody/tr[6]/td[2]/div/table/tbody/tr[2]/td/div/div[2]/div/div[4]/a"
+        next_button = driver.find_element(
+            by=By.XPATH,
+            value=NEXT_BUTTON,
+        )
+        next_button.click()
         page_ind += 1
+
     return subsession_ids
 
 
@@ -159,7 +164,7 @@ def download_result_record(driver, subsession_id):
     url = RESULT_CSV_BASE + params
     driver.get(url)
     lg.info("get data: {0}".format(url))
-    time.sleep(5)  # wait for loading
+    time.sleep(FETCH_WAIT_TIME)  # wait for loading
     soup = BeautifulSoup(driver.page_source, "html.parser")
     race_table = soup.find_all("table", class_="event_table")[1]
     m = []
