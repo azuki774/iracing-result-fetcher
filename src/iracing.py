@@ -9,11 +9,14 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import logging
 import re
 from pythonjsonlogger import jsonlogger
+
+FETCH_WAIT_TIME = 7
 
 lg = logging.getLogger(__name__)
 lg.setLevel(logging.DEBUG)
@@ -63,7 +66,7 @@ def login(driver):
     )
     login_button.click()
 
-    time.sleep(5)
+    time.sleep(FETCH_WAIT_TIME)
 
     ## for checking login success
     driver.find_element(by=By.XPATH, value=TEST_XPATH).get_attribute("textContent")
@@ -73,28 +76,59 @@ def login(driver):
 
 # required login
 def get_your_subsession_id(driver):
+    subsession_ids = []
     url = RESULTS_ARCHIVE_PAGE
     driver.get(url)
 
-    time.sleep(5)  # wait for loading RESULTS_ARCHIVE_PAGE
-    driver.execute_script("javascript:PageApp.Search(true)")
-    time.sleep(5)  # wait for searching
+    time.sleep(FETCH_WAIT_TIME)  # wait for loading RESULTS_ARCHIVE_PAGE
 
-    RESULT_TABLE = "/html/body/table/tbody/tr[6]/td[2]/div/table/tbody/tr[2]/td/div/div[2]/div/div[5]/div[2]/div/div/table"
-    result_table = driver.find_element(
+    driver.execute_script("javascript:PageApp.Search(true)")  # press search button
+    lg.info("press Search button")
+    time.sleep(FETCH_WAIT_TIME)  # wait for searching
+
+    # Get the number of Pages
+    SELECTOR = driver.find_element(
         by=By.XPATH,
-        value=RESULT_TABLE,
+        value="/html/body/table/tbody/tr[6]/td[2]/div/table/tbody/tr[2]/td/div/div[2]/div/div[4]/p/select",
     )
+    select = Select(SELECTOR)
+    all_options = select.options
 
-    html = driver.page_source.encode("utf-8")
+    lg.info("detected {} pages".format((len(all_options))))
+    page_ind = 1
+    for option in all_options:
+        # one page process
+        lg.info("fetching {}/{}".format(page_ind, len(all_options)))
+        time.sleep(FETCH_WAIT_TIME)  # wait for searching
 
-    soup = BeautifulSoup(html, "html.parser")
-    links = soup.find_all("a")
-    a_href_list = []
-    for link in links:
-        a_href_list.append(str(link.get("href")))
+        RESULT_TABLE = "/html/body/table/tbody/tr[6]/td[2]/div/table/tbody/tr[2]/td/div/div[2]/div/div[5]/div[2]/div/div/table"
+        result_table = driver.find_element(
+            by=By.XPATH,
+            value=RESULT_TABLE,
+        )
 
-    subsession_ids = a_href_list_to_subsession_id(a_href_list)
+        html = driver.page_source.encode("utf-8")
+
+        soup = BeautifulSoup(html, "html.parser")
+        links = soup.find_all("a")
+        a_href_list = []
+        for link in links:
+            a_href_list.append(str(link.get("href")))
+
+        subsession_ids = subsession_ids + a_href_list_to_subsession_id(a_href_list)
+
+        if page_ind == len(all_options):  # if last page
+            break
+
+        # next page
+        NEXT_BUTTON = "/html/body/table/tbody/tr[6]/td[2]/div/table/tbody/tr[2]/td/div/div[2]/div/div[4]/a"
+        next_button = driver.find_element(
+            by=By.XPATH,
+            value=NEXT_BUTTON,
+        )
+        next_button.click()
+        page_ind += 1
+
     return subsession_ids
 
 
@@ -130,7 +164,7 @@ def download_result_record(driver, subsession_id):
     url = RESULT_CSV_BASE + params
     driver.get(url)
     lg.info("get data: {0}".format(url))
-    time.sleep(5)  # wait for loading
+    time.sleep(FETCH_WAIT_TIME)  # wait for loading
     soup = BeautifulSoup(driver.page_source, "html.parser")
     race_table = soup.find_all("table", class_="event_table")[1]
     m = []
