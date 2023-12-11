@@ -28,7 +28,7 @@ json_fmt = jsonlogger.JsonFormatter(
 h.setFormatter(json_fmt)
 lg.addHandler(h)
 
-DATA_DIR = "/data"
+DATA_BASEDIR = "/data"
 
 LOGIN_PAGE = "https://members.iracing.com/membersite/member/results.jsp"
 RESULTS_ARCHIVE_PAGE = "https://members.iracing.com/membersite/member/results.jsp"
@@ -82,6 +82,10 @@ def get_your_subsession_id(driver):
 
     time.sleep(FETCH_WAIT_TIME)  # wait for loading RESULTS_ARCHIVE_PAGE
 
+    # Season select
+    choose_season(driver)
+    lg.info("year: {}, season: {}".format(os.getenv("YEAR"), os.getenv("SEASON")))
+
     driver.execute_script("javascript:PageApp.Search(true)")  # press search button
     lg.info("press Search button")
     time.sleep(FETCH_WAIT_TIME)  # wait for searching
@@ -132,6 +136,36 @@ def get_your_subsession_id(driver):
     return subsession_ids
 
 
+def choose_season(driver):
+    YEAR_XPATH = "/html/body/table/tbody/tr[6]/td[2]/div/table/tbody/tr[2]/td/div/div[2]/div/div[2]/div[2]/select[1]"
+    SEASON_XPATH = "/html/body/table/tbody/tr[6]/td[2]/div/table/tbody/tr[2]/td/div/div[2]/div/div[2]/div[2]/select[2]"
+    year_selector = driver.find_element(
+        by=By.XPATH,
+        value=YEAR_XPATH,
+    )
+    season_selector = driver.find_element(
+        by=By.XPATH,
+        value=SEASON_XPATH,
+    )
+
+    year = os.getenv("YEAR")
+    season = os.getenv("SEASON")
+    select_year = Select(year_selector)
+    select_season = Select(season_selector)
+
+    if year is not None:
+        select_year.select_by_value(year)
+
+    if season is not None:
+        select_season.select_by_value(season)
+
+    # environment varible overwrited
+    os.environ["YEAR"] = select_year.first_selected_option.get_attribute("value")
+    os.environ["SEASON"] = select_season.first_selected_option.get_attribute("value")
+    time.sleep(FETCH_WAIT_TIME)
+    return year, season
+
+
 def a_href_list_to_subsession_id(a_href_list):
     subsession_ids = []
     for e in a_href_list:
@@ -145,6 +179,11 @@ def a_href_list_to_subsession_id(a_href_list):
 
 
 def proc_result_record(driver, subsession_id):
+    year = os.getenv("YEAR")
+    season = os.getenv("SEASON")
+    DATA_DIR = DATA_BASEDIR + "/" + year + "/" + season
+    os.makedirs(DATA_DIR, exist_ok=True)
+
     META_FILE_PATH = DATA_DIR + "/{}_meta.json".format(subsession_id)
     if os.path.isfile(META_FILE_PATH):
         lg.info("already existed. skipping download: {}".format(META_FILE_PATH))
