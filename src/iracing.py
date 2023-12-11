@@ -125,12 +125,8 @@ def get_your_subsession_id(driver):
             break
 
         # next page
-        NEXT_BUTTON = "/html/body/table/tbody/tr[6]/td[2]/div/table/tbody/tr[2]/td/div/div[2]/div/div[4]/a"
-        next_button = driver.find_element(
-            by=By.XPATH,
-            value=NEXT_BUTTON,
-        )
-        next_button.click()
+        driver.execute_script("javascript:PageApp.UI.PageForward()")
+        time.sleep(FETCH_WAIT_TIME)  # wait for searching
         page_ind += 1
 
     return subsession_ids
