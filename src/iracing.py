@@ -90,19 +90,26 @@ def get_your_subsession_id(driver):
     lg.info("press Search button")
     time.sleep(FETCH_WAIT_TIME)  # wait for searching
 
-    # Get the number of Pages
-    SELECTOR = driver.find_element(
-        by=By.XPATH,
-        value="/html/body/table/tbody/tr[6]/td[2]/div/table/tbody/tr[2]/td/div/div[2]/div/div[4]/p/select",
-    )
-    select = Select(SELECTOR)
-    all_options = select.options
+    # one page or two pages in this condition?
+    try:
+        # Get the number of Pages
+        SELECTOR = driver.find_element(
+            by=By.XPATH,
+            value="/html/body/table/tbody/tr[6]/td[2]/div/table/tbody/tr[2]/td/div/div[2]/div/div[4]/p/select",
+        )
+        select = Select(SELECTOR)
+        all_options = select.options
+        page_num = len(all_options)
+    except:
+        # no page SELECTOR (maybe one page)
+        lg.info("no SELECTOR found")
+        page_num = 1
 
-    lg.info("detected {} pages".format((len(all_options))))
-    page_ind = 1
-    for option in all_options:
+    lg.info("detected {} pages".format(page_num))
+
+    for i in range(page_num):
         # one page process
-        lg.info("fetching {}/{}".format(page_ind, len(all_options)))
+        lg.info("fetching {}/{}".format(i + 1, page_num))
         time.sleep(FETCH_WAIT_TIME)  # wait for searching
 
         RESULT_TABLE = "/html/body/table/tbody/tr[6]/td[2]/div/table/tbody/tr[2]/td/div/div[2]/div/div[5]/div[2]/div/div/table"
@@ -121,13 +128,12 @@ def get_your_subsession_id(driver):
 
         subsession_ids = subsession_ids + a_href_list_to_subsession_id(a_href_list)
 
-        if page_ind == len(all_options):  # if last page
+        if i + 1 == page_num:  # if last page
             break
 
         # next page
         driver.execute_script("javascript:PageApp.UI.PageForward()")
         time.sleep(FETCH_WAIT_TIME)  # wait for searching
-        page_ind += 1
 
     return subsession_ids
 
