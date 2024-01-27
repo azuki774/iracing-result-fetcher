@@ -32,7 +32,7 @@ DATA_BASEDIR = "/data"
 
 LOGIN_PAGE = "https://members.iracing.com/membersite/member/results.jsp"
 RESULTS_ARCHIVE_PAGE = "https://members.iracing.com/membersite/member/results.jsp"
-TEST_XPATH = "/html/body/div[3]/div[2]/div/div/div/div[1]/div[2]/span[3]"
+TEST_ID = "InitialMessage"
 RESULT_CSV_BASE = "https://members.iracing.com/membersite/member/EventResult.do"
 
 
@@ -69,7 +69,7 @@ def login(driver):
     time.sleep(FETCH_WAIT_TIME)
 
     ## for checking login success
-    driver.find_element(by=By.XPATH, value=TEST_XPATH).get_attribute("textContent")
+    driver.find_element(by=By.ID, value=TEST_ID).get_attribute("textContent")
     lg.info("login ok")
     return
 
@@ -112,10 +112,10 @@ def get_your_subsession_id(driver):
         lg.info("fetching {}/{}".format(i + 1, page_num))
         time.sleep(FETCH_WAIT_TIME)  # wait for searching
 
-        RESULT_TABLE = "/html/body/table/tbody/tr[6]/td[2]/div/table/tbody/tr[2]/td/div/div[2]/div/div[5]/div[2]/div/div/table"
+        RESULT_ID = "Results-Table"
         result_table = driver.find_element(
-            by=By.XPATH,
-            value=RESULT_TABLE,
+            by=By.ID,
+            value=RESULT_ID,
         )
 
         html = driver.page_source.encode("utf-8")
@@ -139,15 +139,15 @@ def get_your_subsession_id(driver):
 
 
 def choose_season(driver):
-    YEAR_XPATH = "/html/body/table/tbody/tr[6]/td[2]/div/table/tbody/tr[2]/td/div/div[2]/div/div[2]/div[2]/select[1]"
-    SEASON_XPATH = "/html/body/table/tbody/tr[6]/td[2]/div/table/tbody/tr[2]/td/div/div[2]/div/div[2]/div[2]/select[2]"
+    YEAR_ID = "Filter-Year"
+    SEASON_ID = "Filter-Season"
     year_selector = driver.find_element(
-        by=By.XPATH,
-        value=YEAR_XPATH,
+        by=By.ID,
+        value=YEAR_ID,
     )
     season_selector = driver.find_element(
-        by=By.XPATH,
-        value=SEASON_XPATH,
+        by=By.ID,
+        value=SEASON_ID,
     )
 
     year = os.getenv("YEAR")
